@@ -1,0 +1,33 @@
+stages:
+    - build_stage
+    - deploy_stage
+    - push_stage
+
+build:
+    stage: build_stage
+    script:
+        - docker --version
+        - systemctl start docker
+        - docker build -t pyapp .
+    tags:
+        - localshell
+        - localrunner
+
+deploy:
+    stage: deploy_stage
+    script:
+        - docker stop pyappcontainer1 || true && docker rm pyappcontainer1 || true
+        - docker run -d --name pyappcontainer1 -p 6000:8080 pyapp
+    tags:
+        - localshell
+        - localrunner
+
+push_image:
+    stage: push_stage
+    script:
+        - docker login -u $USERNAME -p $PASSWORD
+        - docker tag pyapp:latest $USERNAME/mypyapp:latest
+        - docker push $USERNAME/mypyapp:latest
+    tags:
+        - localshell
+        - localrunner
